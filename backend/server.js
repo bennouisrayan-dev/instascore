@@ -7,7 +7,7 @@ import fs from "fs";
 import path from "path";
 import Stripe from "stripe";
 
-dotenv.config();
+dotenv.config({ path: "./backend/.env" });
 
 const app = express();
 app.use(cors());
