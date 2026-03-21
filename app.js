@@ -12,9 +12,11 @@
 // ============================================
 // APPEL IA
 // ============================================
+const API_BASE_URL = "https://instascore-production.up.railway.app";
+
 
 async function getAIBenchmark() {
-  const res = await fetch("http://instascore-production.up.railway.app/api/benchmark", {
+  const res = await fetch("${API_BASE_URL}/api/benchmark", {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
@@ -1514,7 +1516,7 @@ async function loadSession() {
   if (!key) return;
 
   try {
-    const res = await fetch(`http://instascore-production.up.railway.app/api/session/${key}`);
+    const res = await fetch(`${API_BASE_URL}/api/session/${key}`);
 
     if (res.status === 404) {
       console.log("Session non trouvée");
@@ -1553,7 +1555,7 @@ async function restorePremiumAccess() {
   if (!token) return false;
 
   try {
-    const res = await fetch(`http://instascore-production.up.railway.app/api/premium-access/${token}`);
+    const res = await fetch(`${API_BASE_URL}/api/premium-access/${token}`);
     const data = await res.json();
 
     if (!data.success) {
@@ -1608,7 +1610,7 @@ async function runAIBenchmark() {
   showBenchmarkLoading(true);
 
   try {
-    const res = await fetch("http://instascore-production.up.railway.app/api/benchmark", {
+    const res = await fetch("${API_BASE_URL}/api/benchmark", {
       method: "POST",
       headers: { "Content-Type": "application/json", "x-premium-token": state.premiumToken },
       body: JSON.stringify(payload),
@@ -1758,7 +1760,7 @@ async function saveMySession(e) {
   };
 
   try {
-    const res = await fetch("http://instascore-production.up.railway.app/api/session", {
+    const res = await fetch("${API_BASE_URL}/api/session", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
@@ -1839,7 +1841,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 async function startStripeCheckout() {
   try {
-    const res = await fetch("http://instascore-production.up.railway.app/api/create-checkout-session", {
+    const res = await fetch("${API_BASE_URL}/api/create-checkout-session", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
