@@ -45,7 +45,7 @@
       }
 
       try {
-        const res = await fetch(`http://localhost:3001/api/checkout-success?session_id=${encodeURIComponent(sessionId)}`);
+        const res = await fetch(`http://instascore-production.up.railway.app/api/checkout-success?session_id=${encodeURIComponent(sessionId)}`);
         const data = await res.json();
 
         if (!data.success || !data.premiumToken) throw new Error();
