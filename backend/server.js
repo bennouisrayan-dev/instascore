@@ -445,3 +445,7 @@ app.get("/api/premium-access/:token", (req, res) => {
 app.listen(process.env.PORT || 3001, () => {
   console.log("API running on port", process.env.PORT || 3001);
 });
+
+app.get("/", (req, res) => {
+  res.send("API InstaScore OK");
+});
