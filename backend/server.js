@@ -145,6 +145,16 @@ function createPremiumToken({ checkoutSessionId, plan }) {
 
 function requirePremium(req, res, next) {
   const token = req.headers["x-premium-token"];
+  const TEST_MODE = process.env.TEST_MODE === "true";
+
+  // 🔥 MODE TEST (bypass)
+  if (TEST_MODE && token === "test") {
+    console.log("⚡ Test mode actif");
+    req.premium = { test: true };
+    return next();
+  }
+
+  // 🔒 mode normal
   if (!token) {
     return res.status(403).json({
       success: false,
@@ -153,6 +163,7 @@ function requirePremium(req, res, next) {
   }
 
   const row = getPremiumRecordByToken(token);
+
   if (!row) {
     return res.status(403).json({
       success: false,

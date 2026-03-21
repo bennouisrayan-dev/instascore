@@ -1612,7 +1612,7 @@ async function runAIBenchmark() {
   try {
     const res = await fetch("${API_BASE_URL}/api/benchmark", {
       method: "POST",
-      headers: { "Content-Type": "application/json", "x-premium-token": state.premiumToken },
+      headers: { "Content-Type": "application/json", "x-premium-token": "test" },
       body: JSON.stringify(payload),
     });
 
