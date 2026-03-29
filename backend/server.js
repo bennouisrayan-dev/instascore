@@ -251,15 +251,28 @@ Keep it short and actionable.
 
       });
 
-      const text = response.output_text || "";
-      let json;
-      try {
-        json = JSON.parse(text);
-      } catch {
-        const start = text.indexOf("{");
-        const end = text.lastIndexOf("}");
-        json = JSON.parse(text.slice(start, end + 1));
-      }
+      const text = (response.output_text || "").trim();
+
+if (!text) {
+  console.error("Réponse OpenAI vide :", JSON.stringify(response, null, 2));
+  throw new Error("Réponse vide du modèle");
+}
+
+let json;
+
+try {
+  json = JSON.parse(text);
+} catch {
+  const start = text.indexOf("{");
+  const end = text.lastIndexOf("}");
+
+  if (start === -1 || end === -1 || end <= start) {
+    console.error("Réponse OpenAI non-JSON :", text);
+    throw new Error("Le modèle n'a pas renvoyé de JSON valide");
+  }
+
+  json = JSON.parse(text.slice(start, end + 1));
+}
 
       setCached(key, json);
       return json;
