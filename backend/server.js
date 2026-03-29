@@ -214,65 +214,125 @@ app.post("/api/benchmark", requirePremium, async (req, res) => {
       const currentInteractions = Number(likes || 0) + Number(comments || 0);
       const lost = clamp(Math.round(expected - currentInteractions), 0, 999999);
 
-      const model = "gpt-5-mini";
-
       const prompt = `
-Role: IG growth expert. Language: FR. No Instagram API mention.
-Goal: ${objective === "professional" ? "PRO" : "ATTRACTIF"}.
-Niche: ${niche}. Sub: ${subNiche}.
+      Role: IG growth expert. Language: FR. No Instagram API mention.
+      Goal: ${objective === "professional" ? "PRO" : "ATTRACTIF"}.
+      Niche: ${niche}. Sub: ${subNiche}.
 
-Stats:
-followers=${followers}
-likes=${likes}
-comments=${comments}
-er=${er.toFixed(2)} (${label})
-current=${currentInteractions}
-expected=${expected.toFixed(0)}
-lost=${lost}
+      Stats:
+      followers=${followers}
+      likes=${likes}
+      comments=${comments}
+      er=${er.toFixed(2)} (${label})
+      current=${currentInteractions}
+      expected=${expected.toFixed(0)}
+      lost=${lost}
 
-Bio: ${bio || "(vide)"}
-Cap1: ${caption1 || "(vide)"}
-Cap2: ${caption2 || "(vide)"}
+      Bio: ${bio || "(vide)"}
+      Cap1: ${caption1 || "(vide)"}
+      Cap2: ${caption2 || "(vide)"}
+      `.trim();
+      
+      
+      
+      const completion = await client.chat.completions.create({
+  model: "gpt-4.1-mini",
+  messages: [
+    {
+      role: "developer",
+      content: "Tu es un expert croissance Instagram. Réponds en français, de façon courte, concrète, et uniquement via le schéma JSON demandé."
+    },
+    {
+      role: "user",
+      content: prompt
+    }
+  ],
+  response_format: {
+    type: "json_schema",
+    json_schema: {
+      name: "instascore_benchmark",
+      schema: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          headline: { type: "string" },
+          benchmark: {
+            type: "object",
+            additionalProperties: false,
+            properties: {
+              engagementRate: { type: "number" },
+              engagementLabel: { type: "string" },
+              currentInteractionsPerPost: { type: "number" },
+              expectedInteractionsPerPost: { type: "number" },
+              lostInteractionsPerPost: { type: "number" },
+              whyItMatters: { type: "string" }
+            },
+            required: [
+              "engagementRate",
+              "engagementLabel",
+              "currentInteractionsPerPost",
+              "expectedInteractionsPerPost",
+              "lostInteractionsPerPost",
+              "whyItMatters"
+            ]
+          },
+          diagnostic: {
+            type: "array",
+            items: { type: "string" },
+            minItems: 3,
+            maxItems: 3
+          },
+          quickWins: {
+            type: "array",
+            items: {
+              type: "object",
+              additionalProperties: false,
+              properties: {
+                title: { type: "string" },
+                action: { type: "string" }
+              },
+              required: ["title", "action"]
+            },
+            maxItems: 5
+          },
+          plan7Days: {
+            type: "object",
+            additionalProperties: false,
+            properties: {
+              day1: { type: "array", items: { type: "string" }, maxItems: 3 },
+              day2: { type: "array", items: { type: "string" }, maxItems: 3 },
+              day3: { type: "array", items: { type: "string" }, maxItems: 3 },
+              day4: { type: "array", items: { type: "string" }, maxItems: 3 },
+              day5: { type: "array", items: { type: "string" }, maxItems: 3 },
+              day6: { type: "array", items: { type: "string" }, maxItems: 3 },
+              day7: { type: "array", items: { type: "string" }, maxItems: 3 }
+            },
+            required: ["day1", "day2", "day3", "day4", "day5", "day6", "day7"]
+          },
+          upgradeHook: { type: "string" }
+        },
+        required: [
+          "headline",
+          "benchmark",
+          "diagnostic",
+          "quickWins",
+          "plan7Days",
+          "upgradeHook"
+        ]
+      }
+    }
+  }
+});
 
-Return ONLY valid JSON with keys:
-headline, benchmark, diagnostic, quickWins, plan7Days, upgradeHook.
-benchmark keys:
-engagementRate, engagementLabel, currentInteractionsPerPost, expectedInteractionsPerPost, lostInteractionsPerPost, whyItMatters.
-diagnostic: 3 strings.
-quickWins: 5 items max {title, action}.
-plan7Days: day 1..7, each 3 steps max.
-Keep it short and actionable.
-`.trim();
-
-      const response = await client.responses.create({
-        model,
-        input: prompt,
-        max_output_tokens: 700,
-
-      });
-
-      const text = (response.output_text || "").trim();
+const text = completion.choices[0]?.message?.content?.trim();
 
 if (!text) {
-  console.error("Réponse OpenAI vide :", JSON.stringify(response, null, 2));
+
   throw new Error("Réponse vide du modèle");
 }
 
-let json;
+const json = JSON.parse(text);
 
-try {
-  json = JSON.parse(text);
-} catch {
-  const start = text.indexOf("{");
-  const end = text.lastIndexOf("}");
-
-  if (start === -1 || end === -1 || end <= start) {
-    console.error("Réponse OpenAI non-JSON :", text);
-    throw new Error("Le modèle n'a pas renvoyé de JSON valide");
-  }
-
-  json = JSON.parse(text.slice(start, end + 1));
-}
 
       setCached(key, json);
       return json;
