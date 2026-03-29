@@ -1849,7 +1849,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 async function startStripeCheckout() {
   try {
-    const res = await fetch("${API_BASE_URL}/api/create-checkout-session", {
+    const res = await fetch(`${API_BASE_URL}/api/create-checkout-session`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -1872,6 +1872,7 @@ async function startStripeCheckout() {
     alert("Impossible de lancer le paiement");
   }
 }
+
 window.startStripeCheckout = startStripeCheckout;
 window.copySaveLink = copySaveLink;
 window.saveMySession = saveMySession;
