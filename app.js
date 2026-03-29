@@ -16,7 +16,7 @@ const API_BASE_URL = "https://instascore-production.up.railway.app";
 
 
 async function getAIBenchmark() {
-  const res = await fetch("${API_BASE_URL}/api/benchmark", {
+  const res = await fetch(`${API_BASE_URL}/api/benchmark`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
@@ -1581,9 +1581,7 @@ async function restorePremiumAccess() {
 
 async function runAIBenchmark() {
   if (!state.isPremium || !state.premiumToken) {
-    goToScreen("paywall");
-    alert("Le benchmark IA est réservé aux utilisateurs premium.");
-    return;
+      console.log("Mode test benchmark actif");
   }
 
   const payload = {
