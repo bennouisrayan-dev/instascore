@@ -248,7 +248,7 @@ Keep it short and actionable.
         model,
         input: prompt,
         max_output_tokens: 280,
-        temperature: 0.3,
+
       });
 
       const text = response.output_text || "";
