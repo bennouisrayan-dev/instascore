@@ -1646,8 +1646,7 @@ function renderBenchmarkError(message) {
   const container = document.getElementById("benchmark-result");
   if (!container) return;
   container.innerHTML = `<div class="bm-error">${message}</div>`;
-}
-
+} 
 function renderBenchmark(data) {
   const container = document.getElementById("benchmark-result");
   if (!container) return;
@@ -1655,35 +1654,47 @@ function renderBenchmark(data) {
   const b = data.benchmark || {};
   const diag = Array.isArray(data.diagnostic) ? data.diagnostic : [];
   const wins = Array.isArray(data.quickWins) ? data.quickWins : [];
-  const plan = Array.isArray(data.plan7Days) ? data.plan7Days : [];
+  const planObj = data.plan7Days && typeof data.plan7Days === "object" ? data.plan7Days : {};
 
   const chips = `
     <div class="bm-chips">
       <span class="bm-chip">ER: <b>${Number(b.engagementRate ?? 0).toFixed(2)}%</b></span>
-      <span class="bm-chip">${b.engagementLabel || "—"}</span>
+      <span class="bm-chip">${escapeHtml(b.engagementLabel || "—")}</span>
       <span class="bm-chip">Actuel: <b>${b.currentInteractionsPerPost ?? 0}</b>/post</span>
       <span class="bm-chip">Cible: <b>${b.expectedInteractionsPerPost ?? 0}</b>/post</span>
       <span class="bm-chip danger">Perdu: <b>${b.lostInteractionsPerPost ?? 0}</b>/post</span>
     </div>
   `;
 
-  const diagHtml = diag.slice(0, 3).map((x) => `<li>${escapeHtml(x)}</li>`).join("");
-  const winsHtml = wins.slice(0, 4).map((w) => `
-    <div class="bm-card">
-      <div class="bm-card-title">${escapeHtml(w.title || "Quick win")}</div>
-      <div class="bm-card-body">${escapeHtml(w.action || "")}</div>
-    </div>
-  `).join("");
+  const diagHtml = diag
+    .slice(0, 3)
+    .map((x) => `<li>${escapeHtml(x)}</li>`)
+    .join("");
 
-  const planHtml = plan.slice(0, 7).map((d) => {
-    const steps = Array.isArray(d.steps) ? d.steps.slice(0, 3) : [];
-    return `
-      <details class="bm-day">
-        <summary><span>Jour ${d.day || ""}</span><b>${escapeHtml(d.focus || "")}</b></summary>
-        <ul>${steps.map(s => `<li>${escapeHtml(s)}</li>`).join("")}</ul>
-      </details>
-    `;
-  }).join("");
+  const winsHtml = wins
+    .slice(0, 4)
+    .map((w) => `
+      <div class="bm-card">
+        <div class="bm-card-title">${escapeHtml(w.title || "Quick win")}</div>
+        <div class="bm-card-body">${escapeHtml(w.action || "")}</div>
+      </div>
+    `)
+    .join("");
+
+  const planHtml = Object.entries(planObj)
+    .slice(0, 7)
+    .map(([dayKey, steps]) => {
+      const safeSteps = Array.isArray(steps) ? steps.slice(0, 3) : [];
+      const dayLabel = dayKey.replace("day", "Jour ");
+
+      return `
+        <details class="bm-day">
+          <summary><span>${escapeHtml(dayLabel)}</span></summary>
+          <ul>${safeSteps.map((s) => `<li>${escapeHtml(s)}</li>`).join("")}</ul>
+        </details>
+      `;
+    })
+    .join("");
 
   container.innerHTML = `
     <div class="bm-header">
@@ -1711,8 +1722,7 @@ function renderBenchmark(data) {
 
     <div class="bm-hook">${escapeHtml(data.upgradeHook || "")}</div>
   `;
-}
-
+}  
 // Petit helper (sécurité XSS)
 function escapeHtml(str) {
   return String(str || "")
