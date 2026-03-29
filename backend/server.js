@@ -247,7 +247,7 @@ Keep it short and actionable.
       const response = await client.responses.create({
         model,
         input: prompt,
-        max_output_tokens: 280,
+        max_output_tokens: 700,
 
       });
 
