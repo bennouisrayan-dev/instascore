@@ -32,37 +32,41 @@
     </div>
   </div>
 
-  <script>
-    (async function () {
-      const params = new URLSearchParams(window.location.search);
-      const sessionId = params.get("session_id");
+<script>
+  const API_BASE_URL = "https://instascore-production.up.railway.app";
+
+  (async function () {
+    const params = new URLSearchParams(window.location.search);
+    const sessionId = params.get("session_id");
+    
+    if (!sessionId) {
+      document.getElementById('status').style.cssText = "background: rgba(248, 113, 113, 0.1); border: 1px solid rgba(248, 113, 113, 0.2); color: #f87171;";
+      document.getElementById('status').textContent = "Session invalide";
+      document.getElementById('actions').style.display = "flex";
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/checkout-success?session_id=${encodeURIComponent(sessionId)}`);
+      const data = await res.json();
+
+      if (!data.success || !data.premiumToken) throw new Error();
+
+      localStorage.setItem("instascore_premium_token", data.premiumToken);
+      document.getElementById('status').textContent = "Accès activé ! Redirection...";
       
-      if (!sessionId) {
-        document.getElementById('status').style.cssText = "background: rgba(248, 113, 113, 0.1); border: 1px solid rgba(248, 113, 113, 0.2); color: #f87171;";
-        document.getElementById('status').textContent = "Session invalide";
-        document.getElementById('actions').style.display = "flex";
-        return;
-      }
+      setTimeout(() => {
+        window.location.href = `index.html?premium_token=${encodeURIComponent(data.premiumToken)}`;
+      }, 1000);
+    } catch (err) {
+      console.error(err);
+      document.getElementById('status').style.cssText = "background: rgba(248, 113, 113, 0.1); border: 1px solid rgba(248, 113, 113, 0.2); color: #f87171;";
+      document.getElementById('status').textContent = "Erreur d'activation";
+      document.getElementById('actions').style.display = "flex";
+    }
+  })();
+</script>
 
-      try {
-        const res = await fetch(`${API_BASE_URL}/api/checkout-success?session_id=${encodeURIComponent(sessionId)}`);
-        const data = await res.json();
-
-        if (!data.success || !data.premiumToken) throw new Error();
-
-        localStorage.setItem("instascore_premium_token", data.premiumToken);
-        document.getElementById('status').textContent = "Accès activé ! Redirection...";
-        
-        setTimeout(() => {
-          window.location.href = `index.html?premium_token=${encodeURIComponent(data.premiumToken)}`;
-        }, 1000);
-      } catch (err) {
-        document.getElementById('status').style.cssText = "background: rgba(248, 113, 113, 0.1); border: 1px solid rgba(248, 113, 113, 0.2); color: #f87171;";
-        document.getElementById('status').textContent = "Erreur d'activation";
-        document.getElementById('actions').style.display = "flex";
-      }
-    })();
-  </script>
 
 </body>
 </html>
