@@ -55,9 +55,18 @@
       localStorage.setItem("instascore_premium_token", data.premiumToken);
       document.getElementById('status').textContent = "Accès activé ! Redirection...";
       
-      setTimeout(() => {
-        window.location.href = `index.html?premium_token=${encodeURIComponent(data.premiumToken)}`;
-      }, 1000);
+     setTimeout(() => {
+  const sessionToken = localStorage.getItem("instascore_session_token") || "";
+
+  const url = new URL("index.html", window.location.href);
+  url.searchParams.set("premium_token", data.premiumToken);
+
+  if (sessionToken) {
+    url.searchParams.set("key", sessionToken);
+  }
+
+  window.location.href = url.toString();
+}, 1000);
     } catch (err) {
       console.error(err);
       document.getElementById('status').style.cssText = "background: rgba(248, 113, 113, 0.1); border: 1px solid rgba(248, 113, 113, 0.2); color: #f87171;";

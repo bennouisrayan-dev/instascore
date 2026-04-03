@@ -1754,7 +1754,9 @@ function goToCheckout() {
 // UPDATE SESSION
 
 
-async function saveMySession(e) {
+async function saveMySession(e, options = {}) {
+  const { silent = false } = options;
+
   if (e) {
     e.preventDefault();
     e.stopPropagation();
@@ -1768,7 +1770,7 @@ async function saveMySession(e) {
   };
 
   try {
-    const res = await fetch("${API_BASE_URL}/api/session", {
+    const res = await fetch(`${API_BASE_URL}/api/session`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
@@ -1776,9 +1778,16 @@ async function saveMySession(e) {
 
     const data = await res.json();
 
-    if (!data.success) {
+    if (!data.success || !data.token) {
       alert("Erreur sauvegarde");
-      return false;
+      return null;
+    }
+
+    // important : on garde le token de session
+    localStorage.setItem("instascore_session_token", data.token);
+
+    if (silent) {
+      return data.token;
     }
 
     const popup = document.getElementById("save-popup");
@@ -1786,18 +1795,18 @@ async function saveMySession(e) {
 
     if (!popup || !link) {
       alert("Popup introuvable");
-      return false;
+      return data.token;
     }
 
-    link.value = window.location.origin + "?key=" + data.token;
+    link.value = `${window.location.origin}${window.location.pathname}?key=${data.token}`;
     popup.style.display = "flex";
     history.replaceState({}, "", window.location.pathname);
 
-    return false;
+    return data.token;
   } catch (err) {
     console.error("saveMySession error:", err);
     alert("Impossible de sauvegarder l'analyse");
-    return false;
+    return null;
   }
 }
 
@@ -1849,6 +1858,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 async function startStripeCheckout() {
   try {
+    const sessionToken = await saveMySession(null, { silent: true });
+
+    if (!sessionToken) {
+      alert("Impossible de sauvegarder la session avant paiement");
+      return;
+    }
+
     const res = await fetch(`${API_BASE_URL}/api/create-checkout-session`, {
       method: "POST",
       headers: {
