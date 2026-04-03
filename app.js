@@ -1560,7 +1560,13 @@ async function restorePremiumAccess() {
 
     if (!data.success) {
       localStorage.removeItem("instascore_premium_token");
-      if (tokenFromUrl) history.replaceState({}, "", window.location.pathname);
+
+      if (tokenFromUrl) {
+        const cleanUrl = new URL(window.location.href);
+        cleanUrl.searchParams.delete("premium_token");
+        history.replaceState({}, "", cleanUrl.pathname + cleanUrl.search);
+      }
+
       return false;
     }
 
@@ -1569,7 +1575,9 @@ async function restorePremiumAccess() {
     localStorage.setItem("instascore_premium_token", token);
 
     if (tokenFromUrl) {
-      history.replaceState({}, "", window.location.pathname);
+      const cleanUrl = new URL(window.location.href);
+      cleanUrl.searchParams.delete("premium_token");
+      history.replaceState({}, "", cleanUrl.pathname + cleanUrl.search);
     }
 
     return true;
@@ -1608,7 +1616,7 @@ async function runAIBenchmark() {
   showBenchmarkLoading(true);
 
   try {
-    const res = await fetch("${API_BASE_URL}/api/benchmark", {
+    const res = await fetch(`${API_BASE_URL}/api/benchmark`, {
       method: "POST",
       headers: { "Content-Type": "application/json", "x-premium-token": "test" },
       body: JSON.stringify(payload),
